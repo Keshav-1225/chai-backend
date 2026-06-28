@@ -2,9 +2,11 @@
   "name": "project1",
   "version": "1.0.0",
   "description": "This is a project for understanding backend development",
-  "main": "index.js",
+  "type": "module",
+  "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"nodemon src/index.ts"
   },
   "keywords": [
     "typescript",
@@ -12,5 +14,8 @@
     "chai"
   ],
   "author": "Keshav Mishra",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
