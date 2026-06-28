@@ -1,0 +1,16 @@
+{
+  "name": "project1",
+  "version": "1.0.0",
+  "description": "This is a project for understanding backend development",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "typescript",
+    "backend",
+    "chai"
+  ],
+  "author": "Keshav Mishra",
+  "license": "ISC"
+}
