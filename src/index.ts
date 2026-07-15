@@ -1,9 +1,11 @@
 import path from "path";
 import dotenv from "dotenv";
-import connectDB from "./db/db.js";
-import app from "./app.js";
 
 dotenv.config({ path: path.join(process.cwd(), ".env") });
+
+import "./env.js";
+import connectDB from "./db/db.js";
+import app from "./app.js";
 
 connectDB().then(
     () => {

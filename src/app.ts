@@ -1,7 +1,8 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
+import { ApiError } from "./utils/ApiErrors.js"
 
 const app = express()
 app.use(cors(
@@ -24,5 +25,17 @@ app.get("/",(req:Request,res:Response)=>{
 })
 //routes declaration
 app.use("/api/v1/users", userRouter)
+
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+    const statusCode = err instanceof ApiError ? err.statusCode : 500
+    const message = err instanceof Error ? err.message : "Internal Server Error"
+    const errors = err instanceof ApiError ? err.errors : []
+
+    res.status(statusCode).json({
+        success: false,
+        message,
+        errors
+    })
+})
 
 export default app
