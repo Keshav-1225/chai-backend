@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiErrors.js";
 import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 const options = {
     httpOnly: true,
@@ -312,41 +313,89 @@ const getUserChannelProfile = asyncHandler(async (req: Request, res: Response) =
             }
         },
         {   //Stage - 4 : Adding custom fields
-            $addFields:{
-                subscribersCount : {
-                    $size : "$subscribers"
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers"
                 },
-                channelsSubscribedToCount : {
-                    $size : "$subscribedTo"
+                channelsSubscribedToCount: {
+                    $size: "$subscribedTo"
                 },
-                isSubscribed : {
-                    $cond : {
-                        if : {$in:[req.user?._id,"$subscribers.subscriber"]},
-                        then : true,
-                        else : false
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                        then: true,
+                        else: false
                     }
                 }
             }
         },
         {   //Stage - 5 : Send only those fields that are required instead of whole data
-            $project : {
-                fullname : 1,
-                username : 1,
-                avatar : 1,
-                coverImage : 1,
-                subscribersCount : 1,
-                channelsSubscribedToCount : 1,
-                isSubscribed : 1
+            $project: {
+                fullname: 1,
+                username: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1
             }
         }
     ])
 
-    if(!channel?.length) throw new ApiError(404, "Channel does not exist")
+    if (!channel?.length) throw new ApiError(404, "Channel does not exist")
 
     return res.status(200)
-    .json(new ApiResponse(200,channel[0],"User channel fetched successfully"))
+        .json(new ApiResponse(200, channel[0], "User channel fetched successfully"))
 })
 
+const getUserWatchHistory = asyncHandler(async (req: Request, res: Response) => {
+    const user = await User.aggregate([
+        {   //Stage - 1: Find
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user?._id)
+            }
+        },
+        {   //Stage - 2
+            $lookup: {
+                from: 'videos',
+                localField: 'watchHistory',
+                foreignField: '_id',
+                as: 'watchHistory',
+                pipeline: [
+                    {   //Sub stage - 1 : lookup : users
+                        $lookup: {
+                            from: 'users',
+                            localField: 'owner',
+                            foreignField: '_id',
+                            as: 'owner',
+                            pipeline: [
+                                {   //Sub Sub stage - 1 : Project pipeline
+                                    $project: {
+                                        fullName: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+
+                                }
+                            ]
+                        }
+                    },
+                    {   //Sub stage - 2 : Helps to pass on the object instead of an array that has the object
+                        $addFields:{
+                            owner : { $first : "$owner" }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+    return res.status(200)
+    .json(new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "Watch history fetched successfully"
+    ))
+})
 export {
     registerUser,
     loginUser,
@@ -357,5 +406,6 @@ export {
     updateAccountDetails,
     updateAvatar,
     updateCoverImage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getUserWatchHistory
 }
