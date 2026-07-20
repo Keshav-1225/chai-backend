@@ -6,6 +6,7 @@ import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import { TokenPayload } from "../utils/typedef.js";
 
 const options = {
     httpOnly: true,
@@ -179,7 +180,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
     if (!incomingRefreshToken) throw new ApiError(401, "Unauthorized request")
 
-    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET!)
+    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET!) as TokenPayload
     const user = await User.findById(decodedToken?._id)
     if (!user) throw new ApiError(401, "Invalid refresh token")
 
@@ -287,7 +288,7 @@ const updateCoverImage = asyncHandler(async (req: Request, res: Response) => {
 })
 
 const getUserChannelProfile = asyncHandler(async (req: Request, res: Response) => {
-    const { username } = req.params
+    const username = req.params.username as string
     if (!username?.trim()) throw new ApiError(400, "username is missing")
 
     const channel = await User.aggregate([
