@@ -255,7 +255,7 @@ const updateAvatar = asyncHandler(async (req: Request, res: Response) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     if (!avatar.url) throw new ApiError(400, "Avatar not getting uploaded on cloudinary")
 
-    const userAvatar = User.findByIdAndUpdate(
+    const userAvatar = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
@@ -264,17 +264,19 @@ const updateAvatar = asyncHandler(async (req: Request, res: Response) => {
         },
         { new: true }
     ).select("-password")
-
+    return res.status(200)
+    .json(new ApiResponse(200, userAvatar, "Avatar Updated successfully"))
 })
 
 const updateCoverImage = asyncHandler(async (req: Request, res: Response) => {
     const coverImageLocalPath = req.file?.path
+    // console.log(coverImageLocalPath);
     if (!coverImageLocalPath) throw new ApiError(400, "Cover Image missing")
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
     if (!coverImage.url) throw new ApiError(400, "Cover Image not getting uploaded on cloudinary")
 
-    const userCoverImage = User.findByIdAndUpdate(
+    const userCoverImage = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
